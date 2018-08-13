@@ -66,19 +66,35 @@ public class WeiboHandle {
 	}
 	
 	/**
+	 * 根据json获取最新发文时间
+	 * @return
+	 */
+	private Date getNewestWeiboCreateAtByJSON(JSONObject json) {
+		JSONArray dataJsonArray = json.getJSONArray("data");
+		if (dataJsonArray.size() > 0) {
+			JSONObject dataObject = dataJsonArray.getJSONObject(0);
+			String timestamp = dataObject.getString("updateDate");
+			Date updateDate = new Date(Long.parseLong(timestamp + "000"));
+			return updateDate;
+		}
+		return null;
+	}
+	
+	/**
 	 * 卓依婷最新微博处理
 	 */
 	public void timiWeiboDataHandle() {
-		String url = "http://api01.bitspaceman.com:8000/post/weibo?apikey=EFoPstgagLRjbS786RbROmuFVau9XZDcoJ1uN2H3UxOADz7EzzjWVMypWKbTsP5x&uid=1254461195";
 		try {
-			JSONObject json = WeiboUtils.getRequestFromUrl(url);
-			SinaWeiboModel sinaWeiboModel = this.getSinaWeiboModel(json);
+			JSONObject json = WeiboUtils.getTimiWeiboUserInfo();
+			Date jsonNewestWeiboCreateAt = getNewestWeiboCreateAtByJSON(json);
 			Date newestWeiboCreateAt = getNewestWeiboCreateAt();
-			if (isUpdateWeibo(sinaWeiboModel, newestWeiboCreateAt)) {
+			if (isUpdateWeibo(jsonNewestWeiboCreateAt, newestWeiboCreateAt)) {
+				JSONObject weiboJson = WeiboUtils.getTimiSinaWeibo();
+				SinaWeiboModel sinaWeiboModel = this.getSinaWeiboModel(weiboJson);
 				// 2.有更新微博微信发出通知
 				DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				String updateTime = df.format(sinaWeiboModel.getCreatedAt());
-				SendWechatMsg.sendMsg("卓依婷微博更新通知", updateTime + " 依婷发布新微博啦，原文地址：" + sinaWeiboModel.getOriginalTextUrl(), sinaWeiboModel.getWeiboText());
+				SendWechatMsg.sendMsg("卓依婷微博更新通知", updateTime + " 依婷发布新微博啦，原文地址：" + sinaWeiboModel.getOriginalTextUrl(), sinaWeiboModel.getWeiboText() + "原文地址：" + sinaWeiboModel.getOriginalTextUrl());
 				// 3.将更新的微博信息同步至数据库
 				sinaWeiboDao.insert(sinaWeiboModel);
 			}
@@ -105,11 +121,14 @@ public class WeiboHandle {
 	 * @param statuses 微博信息列表
 	 * @return true：更新了 false：未更新
 	 */
-	private boolean isUpdateWeibo(SinaWeiboModel sinaWeiboModel, Date newestWeiboCreateAt) {
+	private boolean isUpdateWeibo(Date jsonNewestWeiboCreateAt, Date newestWeiboCreateAt) {
+		if (jsonNewestWeiboCreateAt == null) {
+			return false;
+		}
 		if (newestWeiboCreateAt == null) {
 			return true;
 		}
-		if (sinaWeiboModel.getCreatedAt().after(newestWeiboCreateAt)) {
+		if (jsonNewestWeiboCreateAt.after(newestWeiboCreateAt)) {
 			return true;
 		}
 		return false;

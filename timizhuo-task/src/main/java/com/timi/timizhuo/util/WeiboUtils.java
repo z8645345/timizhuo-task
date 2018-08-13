@@ -9,16 +9,22 @@ import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.timi.timizhuo.dao.model.SinaWeiboModel;
 
 public class WeiboUtils {
-
+	
+	/**
+	 * 获取新浪微博信息url
+	 */
+	private static final String GET_SINA_WEIBO_URL = "http://api01.bitspaceman.com:8000/post/weibo?apikey=EFoPstgagLRjbS786RbROmuFVau9XZDcoJ1uN2H3UxOADz7EzzjWVMypWKbTsP5x&uid=1254461195";
+	
+	/**
+	 * 获取新浪微博用户信息url
+	 */
+	private static final String GET_WEIBO_USER_INFO_URL = "http://api01.bitspaceman.com:8000/profile/weibo?apikey=EFoPstgagLRjbS786RbROmuFVau9XZDcoJ1uN2H3UxOADz7EzzjWVMypWKbTsP5x&id=1254461195&type=1";
+	
 	private static String readAll(Reader rd) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		int cp;
@@ -61,35 +67,38 @@ public class WeiboUtils {
 			instream.close();
 		}
 	}
+	
+	/**
+	 * 获取卓依婷新浪微博信息
+	 * @return
+	 */
+	public static JSONObject getTimiSinaWeibo() throws IOException, JSONException {
+		return getRequestFromUrl(GET_SINA_WEIBO_URL);
+	}
+	
+	/**
+	 * 获取卓依婷新浪微博用户信息
+	 * @return
+	 * @throws IOException
+	 * @throws JSONException
+	 */
+	public static JSONObject getTimiWeiboUserInfo() throws IOException, JSONException {
+		return getRequestFromUrl(GET_WEIBO_USER_INFO_URL);
+	}
 
 	public static void main(String[] args) throws Exception {
 
 		// 请求示例 url 默认请求参数已经做URL编码
-		String url = "http://api01.bitspaceman.com:8000/post/weibo?apikey=EFoPstgagLRjbS786RbROmuFVau9XZDcoJ1uN2H3UxOADz7EzzjWVMypWKbTsP5x&uid=1254461195";
-		JSONObject json = getRequestFromUrl(url);
-		JSONArray weiboJsonArray = json.getJSONArray("data");
-		JSONObject firstData  = weiboJsonArray.getJSONObject(0);
-		SinaWeiboModel sinaWeiboModel = new SinaWeiboModel();
-		String pDate = firstData.getString("pDate");
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		sinaWeiboModel.setCreatedAt(df.parse(pDate));
-		sinaWeiboModel.setWeiboText(firstData.getString("content"));
-		sinaWeiboModel.setOriginalTextUrl(firstData.getString("url"));
-		JSONArray imageURLsJsonArray = firstData.getJSONArray("imageURLs");
-		if (imageURLsJsonArray != null && imageURLsJsonArray.size() > 0) {
-			String originalPics = "";
-			for(Object object : imageURLsJsonArray) {
-				originalPics += object.toString() + ";";
-			}
-			sinaWeiboModel.setOriginalPics(originalPics.substring(0, originalPics.length() - 1));
-		}
-		JSONArray videoURLsJsonArray = firstData.getJSONArray("videoURLs");
-		if (videoURLsJsonArray != null && videoURLsJsonArray.size() > 0) {
-			String weiboVedio = "";
-			for(Object object : videoURLsJsonArray) {
-				weiboVedio += object.toString() + ";";
-			}
-			sinaWeiboModel.setWeiboVedio(weiboVedio.substring(0, weiboVedio.length() - 1));
-		}
+//		String url = "http://api01.bitspaceman.com:8000/post/weibo?apikey=EFoPstgagLRjbS786RbROmuFVau9XZDcoJ1uN2H3UxOADz7EzzjWVMypWKbTsP5x&uid=1254461195";
+//		String url = "http://api01.bitspaceman.com:8000/profile/weibo?apikey=EFoPstgagLRjbS786RbROmuFVau9XZDcoJ1uN2H3UxOADz7EzzjWVMypWKbTsP5x&id=1254461195&type=1";
+		JSONObject json = getTimiSinaWeibo();
+		System.out.println(json);
+//		JSONArray dataJsonArray = json.getJSONArray("data");
+//		if (dataJsonArray.size() > 0) {
+//			JSONObject dataObject = dataJsonArray.getJSONObject(0);
+//			String timestamp = dataObject.getString("updateDate");
+//			Date updateDate = new Date(Long.parseLong(timestamp + "000"));
+//			System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(updateDate));
+//		}
 	}
 }

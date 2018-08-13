@@ -94,7 +94,7 @@ public class WeiboHandle {
 				// 2.有更新微博微信发出通知
 				DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				String updateTime = df.format(sinaWeiboModel.getCreatedAt());
-				SendWechatMsg.sendMsg("卓依婷微博更新通知", updateTime + " 依婷发布新微博啦，原文地址：" + sinaWeiboModel.getOriginalTextUrl(), sinaWeiboModel.getWeiboText() + "原文地址：" + sinaWeiboModel.getOriginalTextUrl());
+				SendWechatMsg.sendMsg("卓依婷微博更新通知", updateTime + " 依婷发布新微博啦，原文地址：" + sinaWeiboModel.getOriginalTextUrl(), sinaWeiboModel.getWeiboText());
 				// 3.将更新的微博信息同步至数据库
 				sinaWeiboDao.insert(sinaWeiboModel);
 			}
